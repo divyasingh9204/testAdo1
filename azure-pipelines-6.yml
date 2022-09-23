@@ -1,0 +1,76 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- none
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+  - stage: Build
+    displayName: Build
+    jobs:
+      - job: "j1"
+        steps:
+        - task: PublishPipelineArtifact@1
+          inputs:
+            targetPath: '$(Pipeline.Workspace)'
+            artifact: 'buildDrop1'
+            publishLocation: 'pipeline'
+                
+  - stage: Test
+    displayName: Test
+    jobs:
+      - job: "j2"
+        steps:
+          - task: Bash@3
+            inputs:
+              targetType: "inline"
+              script: |
+          - task: SonarCloudPrepare@1
+            inputs:
+              SonarCloud: 'sonar-test-1'
+              organization: 'balu-sn-devops'
+              scannerMode: 'Other'
+              extraProperties: |
+                # Additional properties that will be passed to the scanner,
+                # Put one key=value per line, example:
+                # sonar.exclusions=**/*.bin
+                sonar.projectKey=venkataprasadsirigi_DevOpsTestProject
+                sonar.projectName=DevOpsTestProject
+             
+          - task: Maven@3
+            inputs:
+              mavenPomFile: 'pom.xml'
+              publishJUnitResults: true
+              testResultsFiles: '**/surefire-reports/TEST-*.xml'
+              javaHomeOption: 'JDKVersion'
+              mavenVersionOption: 'Default'
+              mavenAuthenticateFeed: false
+              effectivePomSkip: false
+              sonarQubeRunAnalysis: false
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: '$(Pipeline.Workspace)'
+              artifact: 'buildDrop2'
+              publishLocation: 'pipeline'
+          
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+              ArtifactName: 'buildDrop3'
+              publishLocation: 'Container'
+              
+  # - stage: Deploy
+  #   displayName: Deploy
+  #   jobs:
+  #     - job: "j3"
+  #       pool: server
+  #       steps:
+  #       - task: ServiceNow-DevOps-Server-Change-Acceleration@1
+  #         inputs:
+  #           connectedServiceName: 'dsingh9-DevOps_Practice-ServiceNow DevOps Service Connection'
+  #           UpstreamJob: 'j2'

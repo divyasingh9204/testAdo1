@@ -1,0 +1,141 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+
+trigger:
+- none
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+  - stage: Build
+    displayName: Build
+    jobs:
+      - job: "j1"
+        steps:
+          - task: Bash@3
+            inputs:
+              targetType: "inline"
+              script: |
+                # Write your commands here
+
+                echo 'Hello world updated'
+                
+  - stage: Test
+    displayName: Test
+    jobs:
+      - job: "j2"
+        steps:
+          - task: Bash@3
+            inputs:
+              targetType: "inline"
+              script: |
+          - task: SonarCloudPrepare@1
+            inputs:
+              SonarCloud: 'SonarCloud-ServieConnection'
+              organization: 'venkataprasadsirigi'
+              scannerMode: 'Other'
+              extraProperties: |
+                # Additional properties that will be passed to the scanner,
+                # Put one key=value per line, example:
+                # sonar.exclusions=**/*.bin
+                sonar.projectKey=venkataprasadsirigi_DevOpsTestProject
+                sonar.projectName=DevOpsTestProject
+          - task: Maven@3
+            inputs:
+              mavenPomFile: 'pom.xml'
+              publishJUnitResults: true
+              testResultsFiles: '**/surefire-reports/TEST-*.xml'
+              javaHomeOption: 'JDKVersion'
+              jdkVersionOption: '1.11'
+              mavenVersionOption: 'Default'
+              mavenOptions: '-Xmx3072m'
+              mavenAuthenticateFeed: false
+              effectivePomSkip: false
+              sonarQubeRunAnalysis: true
+              goals: 'test'  
+          - task: SonarCloudPrepare@1
+            inputs:
+              SonarCloud: 'SonarCloud-ServieConnection'
+              organization: 'venkataprasadsirigi'
+              scannerMode: 'Other'
+          - task: SonarCloudPublish@1
+            inputs:
+              pollingTimeoutSec: '300'
+          - task: ServiceNow-DevOps-Build-Sonar-Registration@1
+            inputs:
+              connectedServiceName: 'prasadsandiego-DevOps_Practice-ServiceNow DevOps Service Connection'
+              sonarProjectKey: 'venkataprasadsirigi_DevOpsTestProject'
+              sonarInstanceUrl: 'https://sonarcloud.io/'
+              
+                # Write your commands here
+
+                #echo 'here is the Test'
+          # - task: Maven@3
+          #   inputs:
+          #     mavenPomFile: 'pom.xml'
+          #     publishJUnitResults: true
+          #     testResultsFiles: '**/surefire-reports/TEST-*.xml'
+          #     javaHomeOption: 'JDKVersion'
+          #     mavenVersionOption: 'Default'
+          #     mavenAuthenticateFeed: false
+          #     effectivePomSkip: false
+          #     sonarQubeRunAnalysis: false
+          - task: ServiceNow-DevOps-Agent-Artifact-Registration@1
+            inputs:
+              connectedServiceName: 'prasadsandiego-DevOps_Practice-ServiceNow DevOps Service Connection'
+              artifactsPayload: |
+                {
+                "artifacts": [
+                {
+                "name": "Builddrop2",
+                "version": "1.$(Build.BuildId)",
+                "semanticVersion": "1.$(Build.BuildId).0",
+                "repositoryName": "Automation_Pipeline"
+                }
+                ]
+                }
+          - task: ServiceNow-DevOps-Agent-Package-Registration@1
+            inputs:
+              connectedServiceName: 'prasadsandiego-DevOps_Practice-ServiceNow DevOps Service Connection'
+              packageName: 'Package_Build'
+              artifactsPayload: |
+                {
+                "artifacts": [
+                {
+                "name": "Builddrop2",
+                "version": "1.$(Build.BuildId)",
+                "semanticVersion": "1.$(Build.BuildId).0",
+                "repositoryName": "Automation_Pipeline2"
+                }
+                ]
+                }
+          # - task: ServiceNow-DevOps-Server-Artifact-Registration@1
+          #   inputs:
+          #     connectedServiceName: 'empvsirigiri2-DevOps_Practice-ServiceNow DevOps Service Connection'
+          #     artifactRegistrationPayload: |
+          #       {
+          #       "artifacts": [
+          #       {
+          #       "name": "Builddrop",
+          #       "version": "1.$(Build.BuildId)",
+          #       "semanticVersion": "1.$(Build.BuildId).0",
+          #       "repositoryName": "test_pipeline_with_extension"
+          #       }
+          #       ]
+          #       }
+          #     artifactToolIdExists: false
+            
+  - stage: Deploy
+    displayName: Deploy
+    jobs:
+      - job: "j3"
+        pool: server
+        steps:
+        - task: ServiceNow-DevOps-Server-Change-Acceleration@1
+          inputs:
+            connectedServiceName: 'prasadsandiego-DevOps_Practice-ServiceNow DevOps Service Connection'
+            UpstreamJob: 'j2'

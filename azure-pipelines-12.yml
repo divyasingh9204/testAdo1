@@ -1,0 +1,79 @@
+# specific branch build
+trigger:
+ - none
+pool:
+  vmImage: ubuntu-latest
+stages:
+  - stage: Build
+    jobs:
+      - job: Job_Build
+        steps:
+              - task: PublishPipelineArtifact@1
+                inputs:
+                  targetPath: '$(Pipeline.Workspace)'
+                  artifact: 'TestPipelineUI-agent-registration-artifact.jar'
+                  publishLocation: 'pipeline'
+  - stage: Test
+    jobs:
+      - job: 'j2'
+        steps:
+              - task: Maven@3
+                inputs:
+                  mavenPomFile: 'pom.xml'
+                  mavenOptions: '-Xmx3072m'
+                  javaHomeOption: 'JDKVersion'
+                  jdkVersionOption: '1.8'
+                  jdkArchitectureOption: 'x64'
+                  publishJUnitResults: true
+                  testResultsFiles: '**/surefire-reports/TEST-*.xml'
+                  goals: 'test'
+              - task: ServiceNow-DevOps-Build-Sonar-Registration@1
+                inputs:
+                  connectedServiceName: 'emprsirigiri1-DevOps_Practice-ServiceNow DevOps Service Connection'
+                  sonarProjectKey: 'venkataprasadsirigi_DevOpsTestProject'
+                  sonarInstanceUrl: 'https://sonarcloud.io/'
+
+              - task: ServiceNow-DevOps-Agent-Artifact-Registration@1
+                inputs:
+                  connectedServiceName: 'emprsirigiri1-DevOps_Practice-ServiceNow DevOps Service Connection'
+                  artifactsPayload: |
+                    {
+                        "artifacts": [
+                          {
+                              "name": "TestPipelineUI-agent-registration-artifact.jar",
+                              "version": "1.$(Build.BuildId)",
+                              "semanticVersion": "1.$(Build.BuildId).0",
+                              "repositoryName": "TestPipelineUI"
+                          }
+                        ]
+                    }
+              - task: ServiceNow-DevOps-Agent-Package-Registration@1
+                inputs:
+                  connectedServiceName: 'emprsirigiri1-DevOps_Practice-ServiceNow DevOps Service Connection'
+                  packageName: 'TestPipelineUI-1.33-SNAPSHOT.jar'
+                  artifactsPayload: |
+                    {
+                        "artifacts": [
+                        {
+                            "name": "TestPipelineUI-agent-registration-artifact.jar",
+                            "repositoryName": "TestPipelineUI",
+                            "version": "1.$(build.buildId)",
+                            "pipelineName":"$(system.teamProject)/$(build.definitionName)",
+                            "taskExecutionNumber":"$(build.buildId)",
+                            "stageName":"$(system.jobDisplayName)",
+                            "branchName":"$(build.sourceBranchName)"
+                        }],
+                        "pipelineName":"$(system.teamProject)/$(build.definitionName)",
+                        "taskExecutionNumber":"$(build.buildId)",
+                        "stageName":"$(system.jobDisplayName)",
+                        "branchName":"$(build.sourceBranchName)"
+                    }
+  - stage: Prod
+    pool: server
+    jobs:
+          - job: Job_Prod
+            steps:
+              - task: ServiceNow-DevOps-Server-Change-Acceleration@1
+                inputs:
+                  connectedServiceName: 'emprsirigiri1-DevOps_Practice-ServiceNow DevOps Service Connection'
+                  UpstreamJob: 'Job_Deploy'

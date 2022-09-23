@@ -1,0 +1,195 @@
+jobs:
+- job: Job_1
+  displayName: build
+  pool:
+    vmImage: windows-2019
+  steps:
+  - checkout: self
+  - task: ServiceNow-DevOps-Agent-Artifact-Registration@1
+    displayName: ServiceNow DevOps Agent Artifact Registration
+    inputs:
+      connectedServiceName: 'empdevopspolaris4-DevOps_Practice-ServiceNow DevOps Service Connection'
+      artifactsPayload: |
+        {
+           "artifacts": [
+              {
+                 "name": "classic pipeline artifact",
+        "version": "1.$(build.buildId)",
+        "semanticVersion": "1.$(build.buildId).0",
+          "repositoryName": "devops artifact" 
+              },
+            {
+                 "name": "classic pipeline artifact 1",
+        "version": "1.$(build.buildId)",
+        "semanticVersion": "1.$(build.buildId).0",
+          "repositoryName": "new pipeline" 
+              }
+           ],
+           "pipelineName": "$(system.teamProject)/$(build.definitionName)",
+           "taskExecutionNumber": "$(build.buildId)",
+           "stageName": "$(system.jobDisplayName)",
+         "attemptNumber": "$(system.jobAttempt)",
+           "branchName": "$(build.sourceBranchName)"
+        }
+- job: Job_7
+  displayName: Artifact 2
+  dependsOn: Job_1
+  pool:
+    vmImage: windows-2019
+  steps:
+  - checkout: self
+  - task: ServiceNow-DevOps-Agent-Artifact-Registration@1
+    displayName: ServiceNow DevOps Agent Artifact Registration
+    inputs:
+      connectedServiceName: 'empdevopspolaris4-DevOps_Practice-ServiceNow DevOps Service Connection'
+      artifactsPayload: |
+        {
+           "artifacts": [
+              {
+                 "name": "classic pipeline artifact 2",
+        "version": "1.$(build.buildId)",
+        "semanticVersion": "1.$(build.buildId).0",
+          "repositoryName": "otherpipeline" 
+              }
+           ],
+           "pipelineName": "$(system.teamProject)/$(build.definitionName)",
+           "taskExecutionNumber": "$(build.buildId)",
+           "stageName": "$(system.jobDisplayName)",
+         "attemptNumber": "$(system.jobAttempt)",
+           "branchName": "$(build.sourceBranchName)"
+        }
+- job: Job_2
+  displayName: PACKAGE
+  dependsOn:
+  - Job_1
+  - Job_7
+  pool:
+    vmImage: windows-2019
+  steps:
+  - checkout: self
+  - task: ServiceNow-DevOps-Agent-Package-Registration@1
+    displayName: ServiceNow DevOps Agent Package Registration
+    inputs:
+      connectedServiceName: 'empdevopspolaris4-DevOps_Practice-ServiceNow DevOps Service Connection'
+      packageName: 'classic pipeline package 8.1'
+      artifactsPayload: |
+        {
+            "name": "classic pipeline package 8.1",
+            "artifacts": [
+            {
+        "name": "classic pipeline artifact",
+        "version": "1.$(build.buildId)",
+        "repositoryName": "devops artifact",
+                "pipelineName":"$(system.teamProject)/$(build.definitionName)",
+                "taskExecutionNumber":"$(build.buildId)",
+                "stageName":"$(system.jobDisplayName)",
+          "attemptNumber":"$(system.jobAttempt)",
+              "branchName":"$(build.sourceBranchName)"
+            },
+         {
+        "name": "classic pipeline artifact 1",
+        "version": "1.$(build.buildId)",
+        "repositoryName": "new pipeline",
+                "pipelineName":"$(system.teamProject)/$(build.definitionName)",
+                "taskExecutionNumber":"$(build.buildId)",
+                "stageName":"$(system.jobDisplayName)",
+          "attemptNumber":"$(system.jobAttempt)",
+              "branchName":"$(build.sourceBranchName)"
+            },
+         {
+        "name": "classic pipeline artifact 2",
+        "version": "1.$(build.buildId)",
+        "repositoryName": "otherpipeline",
+                "pipelineName":"$(system.teamProject)/$(build.definitionName)",
+                "taskExecutionNumber":"$(build.buildId)",
+                "stageName":"$(system.jobDisplayName)",
+          "attemptNumber":"$(system.jobAttempt)",
+              "branchName":"$(build.sourceBranchName)"
+            }
+        ],
+            "pipelineName":"$(system.teamProject)/$(build.definitionName)",
+            "taskExecutionNumber":"$(build.buildId)",
+            "stageName":"$(system.jobDisplayName)",
+         "attemptNumber":"$(system.jobAttempt)",
+            "branchName":"$(build.sourceBranchName)"
+        }
+- job: Job_4
+  displayName: change
+  dependsOn: Job_2
+  pool: server
+  steps:
+  - task: ServiceNow-DevOps-Server-Change-Acceleration@1
+    displayName: ServiceNow DevOps Server Change Acceleration
+    inputs:
+      connectedServiceName: 'empdevopspolaris4-DevOps_Practice-ServiceNow DevOps Service Connection'
+      UpstreamJob: 'PACKAGE'
+- job: Job_3
+  displayName: artifact
+  dependsOn: Job_4
+  pool:
+    vmImage: windows-2019
+  steps:
+  - checkout: self
+  - task: ServiceNow-DevOps-Agent-Artifact-Registration@1
+    displayName: ServiceNow DevOps Agent Artifact Registration
+    inputs:
+      connectedServiceName: 'empdevopspolaris4-DevOps_Practice-ServiceNow DevOps Service Connection'
+      artifactsPayload: |
+        {
+           "artifacts": [
+              {
+                 "name": "classic pipeline artifact",
+        "version": "3.$(build.buildId)",
+        "semanticVersion": "3.$(build.buildId).0",
+          "repositoryName": "devops artifact" 
+              }
+           ],
+           "pipelineName": "$(system.teamProject)/$(build.definitionName)",
+           "taskExecutionNumber": "$(build.buildId)",
+           "stageName": "$(system.jobDisplayName)",
+         "attemptNumber": "$(system.jobAttempt)",
+           "branchName": "$(build.sourceBranchName)"
+        }
+- job: Job_5
+  displayName: package 2
+  dependsOn: Job_3
+  pool:
+    vmImage: windows-2019
+  steps:
+  - checkout: self
+  - task: ServiceNow-DevOps-Agent-Package-Registration@1
+    displayName: ServiceNow DevOps Agent Package Registration
+    inputs:
+      connectedServiceName: 'empdevopspolaris4-DevOps_Practice-ServiceNow DevOps Service Connection'
+      packageName: 'classic pipeline package 8.2'
+      artifactsPayload: |
+        {
+            "name": "classic pipeline package 8.2",
+            "artifacts": [
+            {
+        "name": "classic pipeline artifact",
+        "version": "3.$(build.buildId)",
+        "repositoryName": "devops artifact",
+                "pipelineName":"$(system.teamProject)/$(build.definitionName)",
+                "taskExecutionNumber":"$(build.buildId)",
+                "stageName":"$(system.jobDisplayName)",
+          "attemptNumber":"$(system.jobAttempt)",
+              "branchName":"$(build.sourceBranchName)"
+            }],
+            "pipelineName":"$(system.teamProject)/$(build.definitionName)",
+            "taskExecutionNumber":"$(build.buildId)",
+            "stageName":"$(system.jobDisplayName)",
+         "attemptNumber":"$(system.jobAttempt)",
+            "branchName":"$(build.sourceBranchName)"
+        }
+- job: Job_6
+  displayName: change 2
+  dependsOn: Job_5
+  pool: server
+  steps:
+  - task: ServiceNow-DevOps-Server-Change-Acceleration@1
+    displayName: ServiceNow DevOps Server Change Acceleration
+    inputs:
+      connectedServiceName: 'empdevopspolaris4-DevOps_Practice-ServiceNow DevOps Service Connection'
+      UpstreamJob: 'package 2'
+...

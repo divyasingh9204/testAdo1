@@ -1,0 +1,165 @@
+# specific branch build
+trigger:
+ - none
+pool:
+  vmImage: ubuntu-latest
+stages:
+  - stage: Build
+    jobs:
+      - job: Job_Build
+        steps:
+              - task: ServiceNow-DevOps-Agent-Artifact-Registration@1
+                inputs:
+                  connectedServiceName: 'empdevopspolaris4-DevOps_Practice-ServiceNow DevOps Service Connection'
+                  artifactsPayload: |
+                    {
+                       "artifacts": [
+                          {
+                             "name": "avgbrewingapp-mvp32.jar",
+                    "version": "1.$(build.buildId)",
+                    "semanticVersion": "1.$(build.buildId).0",
+                      "repositoryName": "Average App Pipeline" 
+                          },
+                        {
+                             "name": "avgbrewingapp-mvp33.jar",
+                    "version": "1.$(build.buildId)",
+                    "semanticVersion": "1.$(build.buildId).0",
+                      "repositoryName": "DevOps_Practice" 
+                          }
+                       ],
+                       "pipelineName": "$(system.teamProject)/$(build.definitionName)",
+                       "taskExecutionNumber": "$(build.buildId)",
+                       "stageName": "$(system.jobDisplayName)",
+                     "attemptNumber": "$(system.jobAttempt)",
+                       "branchName": "$(build.sourceBranchName)"
+                    }
+              - task: ServiceNow-DevOps-Agent-Artifact-Registration@1
+                inputs:
+                  connectedServiceName: 'empdevopspolaris4-DevOps_Practice-ServiceNow DevOps Service Connection'
+                  artifactsPayload: |
+                    {
+                       "artifacts": [
+                          {
+                             "name": "avgbrewingapp-mvp34.jar",
+                    "version": "1.$(build.buildId)",
+                    "semanticVersion": "1.$(build.buildId).0",
+                      "repositoryName": "Average App Pipeline1" 
+                          }
+                       ],
+                       "pipelineName": "$(system.teamProject)/$(build.definitionName)",
+                       "taskExecutionNumber": "$(build.buildId)",
+                       "stageName": "$(system.jobDisplayName)",
+                     "attemptNumber": "$(system.jobAttempt)",
+                       "branchName": "$(build.sourceBranchName)"
+                    }
+              - task: ServiceNow-DevOps-Agent-Package-Registration@1
+                inputs:
+                  connectedServiceName: 'empdevopspolaris4-DevOps_Practice-ServiceNow DevOps Service Connection'
+                  packageName: 'avgbrewingapp-pkg2'
+                  artifactsPayload: |
+                    {
+                        "name": "avgbrewingapp-pkg2",
+                        "artifacts": [
+                        {
+                    "name": "avgbrewingapp-mvp32.jar",
+                    "version": "1.$(build.buildId)",
+                    "repositoryName": "Average App Pipeline",
+                            "pipelineName":"$(system.teamProject)/$(build.definitionName)",
+                            "taskExecutionNumber":"$(build.buildId)",
+                            "stageName":"$(system.jobDisplayName)",
+                      "attemptNumber":"$(system.jobAttempt)",
+                          "branchName":"$(build.sourceBranchName)"
+                        },
+                     {
+                    "name": "avgbrewingapp-mvp33.jar",
+                    "version": "1.$(build.buildId)",
+                    "repositoryName": "DevOps_Practice",
+                            "pipelineName":"$(system.teamProject)/$(build.definitionName)",
+                            "taskExecutionNumber":"$(build.buildId)",
+                            "stageName":"$(system.jobDisplayName)",
+                      "attemptNumber":"$(system.jobAttempt)",
+                          "branchName":"$(build.sourceBranchName)"
+                        },
+                     {
+                    "name": "avgbrewingapp-mvp34.jar",
+                    "version": "1.$(build.buildId)",
+                    "repositoryName": "Average App Pipeline1",
+                            "pipelineName":"$(system.teamProject)/$(build.definitionName)",
+                            "taskExecutionNumber":"$(build.buildId)",
+                            "stageName":"$(system.jobDisplayName)",
+                      "attemptNumber":"$(system.jobAttempt)",
+                          "branchName":"$(build.sourceBranchName)"
+                        }
+                    ],
+                        "pipelineName":"$(system.teamProject)/$(build.definitionName)",
+                        "taskExecutionNumber":"$(build.buildId)",
+                        "stageName":"$(system.jobDisplayName)",
+                     "attemptNumber":"$(system.jobAttempt)",
+                        "branchName":"$(build.sourceBranchName)"
+                    }
+  - stage: Prod
+    pool: server
+    jobs:
+          - job: Job_Prod
+            steps:
+              - task: ServiceNow-DevOps-Server-Change-Acceleration@1
+                inputs:
+                  connectedServiceName: 'empdevopspolaris4-DevOps_Practice-ServiceNow DevOps Service Connection'
+                  UpstreamJob: 'Job_Deploy'
+  - stage: Test
+    jobs:
+      - job: Job_Test
+        steps:
+        - task: ServiceNow-DevOps-Agent-Artifact-Registration@1
+          inputs:
+            connectedServiceName: 'empdevopspolaris4-DevOps_Practice-ServiceNow DevOps Service Connection'
+            artifactsPayload: |
+              {
+                 "artifacts": [
+                    {
+                       "name": "classic pipeline artifact 2",
+              "version": "3.$(build.buildId)",
+              "semanticVersion": "3.$(build.buildId).0",
+                "repositoryName": "Average App Pipeline" 
+                    }
+                 ],
+                 "pipelineName": "$(system.teamProject)/$(build.definitionName)",
+                 "taskExecutionNumber": "$(build.buildId)",
+                 "stageName": "$(system.jobDisplayName)",
+               "attemptNumber": "$(system.jobAttempt)",
+                 "branchName": "$(build.sourceBranchName)"
+              }
+        - task: ServiceNow-DevOps-Agent-Package-Registration@1
+          inputs:
+            connectedServiceName: 'empdevopspolaris4-DevOps_Practice-ServiceNow DevOps Service Connection'
+            packageName: 'classic pipeline package 8.2'
+            artifactsPayload: |
+              {
+                                                          "name": "classic pipeline package 2",
+                                                          "artifacts": [
+                                                          {
+                                                      "name": "classic pipeline artifact 2",
+                                                      "version": "3.$(build.buildId)",
+                                                      "repositoryName": "Average App Pipeline",
+                                                              "pipelineName":"$(system.teamProject)/$(build.definitionName)",
+                                                              "taskExecutionNumber":"$(build.buildId)",
+                                                              "stageName":"$(system.jobDisplayName)",
+                                                        "attemptNumber":"$(system.jobAttempt)",
+                                                            "branchName":"$(build.sourceBranchName)"
+                                                          }],
+                                                          "pipelineName":"$(system.teamProject)/$(build.definitionName)",
+                                                          "taskExecutionNumber":"$(build.buildId)",
+                                                          "stageName":"$(system.jobDisplayName)",
+                                                       "attemptNumber":"$(system.jobAttempt)",
+                                                          "branchName":"$(build.sourceBranchName)"
+                                                      }
+
+  - stage: Deploy
+    pool: server
+    jobs:
+          - job: Job_Deploy
+            steps:
+              - task: ServiceNow-DevOps-Server-Change-Acceleration@1
+                inputs:
+                  connectedServiceName: 'empdevopspolaris4-DevOps_Practice-ServiceNow DevOps Service Connection'
+                  UpstreamJob: 'Job_Test'

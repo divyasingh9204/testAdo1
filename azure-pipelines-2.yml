@@ -1,0 +1,79 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- none
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+  - stage: Build
+    displayName: Build
+    jobs:
+      - job: "j1"
+        steps:
+          - task: UniversalPackages@0
+            inputs:
+              command: 'download'
+              downloadDirectory: '$(System.DefaultWorkingDirectory)'
+              feedsToUse: 'internal'
+              vstsFeed: '50d08722-6b51-44f0-9608-3cdeac003309/31e26301-e321-494c-9f7e-fcfb3e1d2489'
+              vstsFeedPackage: 'pkg$(build.buildId)'
+              vstsPackageVersion: '1.$(build.buildId)'
+  - stage: Test
+    displayName: Test
+    jobs:
+      - job: "j2"
+        steps:
+
+        - task: Maven@3
+          inputs:
+            mavenPomFile: 'pom.xml'
+            publishJUnitResults: true
+            testResultsFiles: '**/surefire-reports/TEST-*.xml'
+            javaHomeOption: 'JDKVersion'
+            mavenVersionOption: 'Default'
+            mavenAuthenticateFeed: false
+            effectivePomSkip: false
+            sonarQubeRunAnalysis: false
+        - task: SonarCloudPrepare@1
+          inputs:
+            SonarCloud: 'sonar-test-1'
+            organization: 'balu-sn-devops'
+            scannerMode: 'Other'
+            projectKey: 'venkataprasadsirigi_DevOpsTestProject'
+            projectName: 'DevOpsTestProject'
+        - task: UniversalPackages@0
+          inputs:
+            command: 'download'
+            downloadDirectory: '$(System.DefaultWorkingDirectory)'
+            feedsToUse: 'internal'
+            vstsFeed: '50d08722-6b51-44f0-9608-3cdeac003309/2d410ec7-6380-4d3d-9e17-3f3ec23de6ae'
+            vstsFeedPackage: 'pkg$(build.buildId)'
+            vstsPackageVersion: '1.$(build.buildId)'
+  - stage: Deploy
+    displayName: Deploy
+    jobs:
+      - job: j4
+        pool: server
+        steps:
+        - task: ServiceNow-DevOps-Server-Change-Acceleration@1
+          inputs:
+            connectedServiceName: 'prasadsandiego-TestAdoArtifacts-ServiceNow DevOps Service Connection'
+            changeRequestDetails: |
+              {
+                "attributes": {
+                  "short_description": "Test desc",
+                  "priority": "1",
+                  "start_date": "2021-02-05 08:00:00",
+                  "justification": "test just",
+                  "description": "test descri",
+                  "cab_required": true,
+                  "work_notes": "test work"
+                },
+                "setCloseCode": false
+              }
+              

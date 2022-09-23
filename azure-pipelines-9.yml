@@ -1,0 +1,181 @@
+trigger:
+  - none
+
+pool:
+  vmImage: "ubuntu-latest"
+
+stages:
+  - stage: Build
+    displayName: Build
+    jobs:
+      - job: "j1"
+        steps:
+          - task: Bash@3
+            inputs:
+              targetType: "inline"
+              script: |
+                # Write your commands here
+
+                echo 'Hello world'
+  - stage: Test
+    displayName: Test
+    jobs:
+      - job: "j2"
+        steps:
+          - task: SonarCloudPrepare@1
+            inputs:
+              SonarCloud: 'SonarCloud-ServieConnection'
+              organization: 'venkataprasadsirigi'
+              scannerMode: 'Other'
+              extraProperties: |
+                # Additional properties that will be passed to the scanner,
+                # Put one key=value per line, example:
+                # sonar.exclusions=**/*.bin
+                sonar.projectKey=venkataprasadsirigi_DevOpsTestProject
+                sonar.projectName=DevOpsTestProject
+          - task: Maven@3
+            inputs:
+              mavenPomFile: 'pom.xml'
+              publishJUnitResults: true
+              testResultsFiles: '**/surefire-reports/TEST-*.xml'
+              javaHomeOption: 'JDKVersion'
+              jdkVersionOption: '1.11'
+              mavenVersionOption: 'Default'
+              mavenOptions: '-Xmx3072m'
+              mavenAuthenticateFeed: false
+              effectivePomSkip: false
+              sonarQubeRunAnalysis: true
+          - task: SonarCloudPrepare@1
+            inputs:
+              SonarCloud: 'SonarCloud-ServieConnection'
+              organization: 'venkataprasadsirigi'
+              scannerMode: 'Other'
+          - task: SonarCloudPublish@1
+            inputs:
+              pollingTimeoutSec: '300'
+          - task: ServiceNow-DevOps-Build-Sonar-Registration@1
+            inputs:
+              connectedServiceName: 'emppsinha3-DevOps_Practice-ServiceNow DevOps Service Connection'
+              sonarProjectKey: 'venkataprasadsirigi_DevOpsTestProject'
+              sonarInstanceUrl: 'https://sonarcloud.io/'
+          - task: ServiceNow-DevOps-Agent-Artifact-Registration@1
+            inputs:
+              connectedServiceName: 'emppsinha3-DevOps_Practice-ServiceNow DevOps Service Connection'
+              artifactsPayload: |
+                {
+                "artifacts": [
+                {
+                "name": "Builddrop",
+                "version": "1.$(Build.BuildId)",
+                "semanticVersion": "1.$(Build.BuildId).0",
+                "repositoryName": "DevOps_Rohit_sonar"
+                }
+                ]
+                }
+          - task: ServiceNow-DevOps-Agent-Package-Registration@1
+            inputs:
+              connectedServiceName: 'emppsinha3-DevOps_Practice-ServiceNow DevOps Service Connection'
+              packageName: 'Package_Sonar'
+              artifactsPayload: |
+                {
+                "artifacts": [
+                {
+                "name": "Builddrop",
+                "version": "1.$(Build.BuildId)",
+                "semanticVersion": "1.$(Build.BuildId).0",
+                "repositoryName": "DevOps_Rohit_sonar"
+                }
+                ]
+                }
+
+  - stage: ArtifactAndPackage
+    jobs:
+          - job: 'j3'
+            # steps:
+            # - task: ServiceNow-DevOps-Agent-Artifact-Registration@1
+            #   inputs:
+            #     connectedServiceName: 'empvsirigiri2-DevOps_Practice-ServiceNow DevOps Service Connection'
+            #     artifactsPayload: |
+            #       {
+            #       "artifacts": [
+            #       {
+            #       "name": "Builddrop",
+            #       "version": "1.$(Build.BuildId)",
+            #       "semanticVersion": "1.$(Build.BuildId).0",
+            #       "repositoryName": "test_pipeline_with_extension"
+            #       }
+            #       ]
+            #       }
+          
+            # - task: ServiceNow-DevOps-Agent-Package-Registration@1
+            #   inputs:
+            #     connectedServiceName: 'empvsirigiri2-DevOps_Practice-ServiceNow DevOps Service Connection'
+            #     packageName: 'Package1'
+            #     artifactsPayload: |
+            #       {
+            #       "artifacts": [
+            #       {
+            #       "name": "Builddrop",
+            #       "version": "1.$(Build.BuildId)",
+            #       "semanticVersion": "1.$(Build.BuildId).0",
+            #       "repositoryName": "test_pipeline_with_extension"
+            #       }
+            #       ]
+            #       }
+            # - task: ServiceNow-DevOps-Server-Artifact-Registration@1
+            #   inputs:
+            #     connectedServiceName: 'emprsirigiri1-DevOps_Practice-ServiceNow DevOps Service Connection'
+            #     artifactRegistrationPayload: |
+            #       {
+            #          "artifacts": [
+            #             {
+            #                "name": "az-artifact10",
+            #                "version": "1.$(build.buildId)",
+            #                "semanticVersion": "1.$(build.buildId).0",
+            #                "repositoryName": "repo10"
+            #             },
+            #             {
+            #                "name": "az-artifact2",
+            #                "version": "1.$(build.buildId)",
+            #                "semanticVersion": "1.$(build.buildId).0",
+            #                "repositoryName": "empb5-old"
+            #             }
+            #          ],
+            #          "pipelineName": "$(system.teamProject)/$(build.definitionName)",
+            #          "taskExecutionNumber": "$(build.buildId)",
+            #          "stageName": "$(System.StageDisplayName)/$(system.jobDisplayName)",
+            #          "branchName": "$(build.sourceBranchName)"
+            #       }
+            #     artifactToolIdExists: false
+            # - task: ServiceNow-DevOps-Server-Package-Registration@1
+            #   inputs:
+            #     connectedServiceName: 'emprsirigiri1-DevOps_Practice-ServiceNow DevOps Service Connection'
+            #     packageRegistrationPayload: |
+            #       {
+            #           "name": "pkg$(build.buildId)",
+            #           "artifacts": [
+            #           {
+            #               "name": "az-artifact10",
+            #               "repositoryName": "repo10",
+            #               "version": "1.$(build.buildId)",
+            #               "pipelineName":"$(system.teamProject)/$(build.definitionName)",
+            #               "taskExecutionNumber":"$(build.buildId)",
+            #               "stageName":"$(System.StageName)/$(system.jobDisplayName)",
+            #               "branchName":"$(build.sourceBranchName)"
+            #           }],
+            #           "pipelineName":"$(system.teamProject)/$(build.definitionName)",
+            #           "taskExecutionNumber":"$(build.buildId)",
+            #           "stageName":"$(System.StageName)/$(system.jobDisplayName)",
+            #           "branchName":"$(build.sourceBranchName)"
+            #       }
+            #     artifactToolIdExists: false
+  - stage: Deploy
+    displayName: Deploy
+    jobs:
+      - job: j4
+        pool: server
+        steps:
+        - task: ServiceNow-DevOps-Server-Change-Acceleration@1
+          inputs:
+            connectedServiceName: 'emppsinha3-DevOps_Practice-ServiceNow DevOps Service Connection'
+            UpstreamJob: 'j3'

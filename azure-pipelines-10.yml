@@ -1,0 +1,114 @@
+trigger:
+ - none
+pool:
+  vmImage: ubuntu-latest
+stages:
+  - stage: Build
+    jobs:
+      - job: Job_Build
+        steps:
+          - task: Bash@3
+            inputs:
+              targetType: inline
+              script: |
+                # Write your commands here                  
+                echo 'Hello world!'
+  - stage: Test
+    jobs:
+      - job: Job_Test
+        steps:
+          - task: Bash@3
+            inputs:
+              targetType: inline
+              script: |
+                # Write your commands here                  
+                echo 'Hello world'
+          - task: Maven@3
+            inputs:
+              mavenPomFile: 'pom.xml'
+              publishJUnitResults: true
+              testResultsFiles: '**/surefire-reports/TEST-*.xml'
+              javaHomeOption: 'JDKVersion'
+              jdkVersionOption: '1.11'
+              mavenVersionOption: 'Default'
+              mavenAuthenticateFeed: false
+              effectivePomSkip: false
+              sonarQubeRunAnalysis: false
+          - task: Maven@3
+            inputs:
+              mavenPomFile: pom.xml
+              goals: test
+              options: '-Dtest=TestTwo'
+              publishJUnitResults: true
+              testResultsFiles: '**/surefire-reports/TEST-*.xml'
+              testRunTitle: TestTwo
+              javaHomeOption: JDKVersion
+              mavenVersionOption: Default
+              mavenAuthenticateFeed: false
+              effectivePomSkip: false
+              sonarQubeRunAnalysis: false
+          - task: ServiceNow-DevOps-Build-Sonar-Registration@1
+            inputs:
+              connectedServiceName: 'emprsirigiri1-DevOps_Practice-ServiceNow DevOps Service Connection'
+              sonarProjectKey: 'venkataprasadsirigi_DevOpsTestProject'
+              sonarInstanceUrl: 'http://sonarqube1.sndevops.xyz/'
+          - task: Bash@3
+            inputs:
+              targetType: inline
+              script: |
+                # Write your commands here
+                echo 'Hello world'
+  - stage: Deploy
+    jobs:
+      - job: Job_Deploy
+        steps:
+          - task: Bash@3
+            inputs:
+              targetType: inline
+              script: |
+                # Write your commands here                  
+                echo 'Hello world'
+          - task: ServiceNow-DevOps-Agent-Artifact-Registration@1
+            inputs:
+              connectedServiceName: 'emprsirigiri1-DevOps_Practice-ServiceNow DevOps Service Connection'
+              artifactsPayload: |
+                {
+                    "artifacts": [
+                      {
+                          "name": "msnautomation-agent-registration-artifact.jar",
+                          "version": "1.$(Build.BuildId)",
+                          "semanticVersion": "1.$(Build.BuildId).0",
+                          "repositoryName": "app-devops"
+                      }
+                    ]
+                }
+          - task: ServiceNow-DevOps-Agent-Package-Registration@1
+            inputs:
+              connectedServiceName: 'emprsirigiri1-DevOps_Practice-ServiceNow DevOps Service Connection'
+              packageName: 'app-devops-1.33-SNAPSHOT.jar'
+              artifactsPayload: |
+                {
+                    "artifacts": [
+                    {
+                        "name": "msnautomation-agent-registration-artifact.jar",
+                        "repositoryName": "app-devops",
+                        "version": "1.$(build.buildId)",
+                        "pipelineName":"$(system.teamProject)/$(build.definitionName)",
+                        "taskExecutionNumber":"$(build.buildId)",
+                        "stageName":"$(system.jobDisplayName)",
+                        "branchName":"$(build.sourceBranchName)"
+                    }],
+                    "pipelineName":"$(system.teamProject)/$(build.definitionName)",
+                    "taskExecutionNumber":"$(build.buildId)",
+                    "stageName":"$(system.jobDisplayName)",
+                    "branchName":"$(build.sourceBranchName)"
+                }
+  - stage: Prod
+    pool: server
+    jobs:
+      - job: Job_Prod
+        steps:
+        - task: ServiceNow-DevOps-Server-Change-Acceleration@1
+          inputs:
+            connectedServiceName: 'emprsirigiri1-DevOps_Practice-ServiceNow DevOps Service Connection'
+            UpstreamJob: 'Job_Deploy'
