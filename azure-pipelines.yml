@@ -66,7 +66,7 @@ stages:
           #     pollingTimeoutSec: '300'
           # - task: ServiceNow-DevOps-Build-Sonar-Registration@1
           #   inputs:
-          #     connectedServiceName: 'prasadsandiego-DevOps_Practice-ServiceNow DevOps Service Connection'
+          #     connectedServiceName: 'dsingh9-DevOps_Practice-ServiceNow DevOps Service Connection'
           #     sonarProjectKey: 'venkataprasadsirigi_DevOpsTestProject'
           #     sonarInstanceUrl: 'https://sonarcloud.io/'
               
@@ -85,7 +85,7 @@ stages:
           #     sonarQubeRunAnalysis: false
           - task: ServiceNow-DevOps-Agent-Artifact-Registration@1
             inputs:
-              connectedServiceName: 'prasadsandiego-TestReleasePipeline-ServiceNow DevOps Service Connection'
+              connectedServiceName: 'dsingh9o-TestReleasePipeline-ServiceNow DevOps Service Connection'
               artifactsPayload: |
                 {
                 "artifacts": [
@@ -99,7 +99,7 @@ stages:
                 }
           - task: ServiceNow-DevOps-Agent-Package-Registration@1
             inputs:
-              connectedServiceName: 'prasadsandiego-DevOps_Practice-ServiceNow DevOps Service Connection'
+              connectedServiceName: 'dsingh9o-DevOps_Practice-ServiceNow DevOps Service Connection'
               packageName: 'Package_Build'
               artifactsPayload: |
                 {
@@ -114,7 +114,7 @@ stages:
                 }
           # - task: ServiceNow-DevOps-Server-Artifact-Registration@1
           #   inputs:
-          #     connectedServiceName: 'prasadsandiego-DevOps_Practice-ServiceNow DevOps Service Connection'
+          #     connectedServiceName: 'dsingh9o-DevOps_Practice-ServiceNow DevOps Service Connection'
           #     artifactRegistrationPayload: |
           #       {
           #       "artifacts": [
@@ -136,5 +136,5 @@ stages:
   #       steps:
   #       - task: ServiceNow-DevOps-Server-Change-Acceleration@1
   #         inputs:
-  #           connectedServiceName: 'prasadsandiego-DevOps_Practice-ServiceNow DevOps Service Connection'
+  #           connectedServiceName: 'dsingh9o-DevOps_Practice-ServiceNow DevOps Service Connection'
   #           UpstreamJob: 'j2'
