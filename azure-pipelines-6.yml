@@ -26,22 +26,11 @@ stages:
     jobs:
       - job: "j2"
         steps:
-          - task: Bash@3
+          - task: ServiceNow-DevOps-Build-Sonar-Registration@1
             inputs:
-              targetType: "inline"
-              script: |
-          - task: SonarCloudPrepare@1
-            inputs:
-              SonarCloud: 'sonar-test-1'
-              organization: 'balu-sn-devops'
-              scannerMode: 'Other'
-              extraProperties: |
-                # Additional properties that will be passed to the scanner,
-                # Put one key=value per line, example:
-                # sonar.exclusions=**/*.bin
-                sonar.projectKey=venkataprasadsirigi_DevOpsTestProject
-                sonar.projectName=DevOpsTestProject
-             
+              connectedServiceName: 'dsingh9-TestAdoArtifacts-ServiceNow DevOps Service Connection'
+              sonarProjectKey: 'balu-sn-devops_First_repo'
+              sonarInstanceUrl: 'http://sonarqube1.sndevops.xyz'
           - task: Maven@3
             inputs:
               mavenPomFile: 'pom.xml'
