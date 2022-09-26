@@ -59,13 +59,13 @@ stages:
               ArtifactName: 'buildDrop3'
               publishLocation: 'Container'
               
-  # - stage: Deploy
-  #   displayName: Deploy
-  #   jobs:
-  #     - job: "j3"
-  #       pool: server
-  #       steps:
-  #       - task: ServiceNow-DevOps-Server-Change-Acceleration@1
-  #         inputs:
-  #           connectedServiceName: 'dsingh9-DevOps_Practice-ServiceNow DevOps Service Connection'
-  #           UpstreamJob: 'j2'
+  - stage: Deploy
+    displayName: Deploy
+    jobs:
+      - job: "j3"
+        pool: server
+        steps:
+        - task: ServiceNow-DevOps-Server-Change-Acceleration@1
+          inputs:
+            connectedServiceName: 'dsingh9-DevOps_Practice-ServiceNow DevOps Service Connection'
+            UpstreamJob: 'j2'
