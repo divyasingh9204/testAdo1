@@ -67,5 +67,5 @@ stages:
         steps:
         - task: ServiceNow-DevOps-Server-Change-Acceleration@1
           inputs:
-            connectedServiceName: 'dsingh9-DevOps_Practice-ServiceNow DevOps Service Connection'
+            connectedServiceName: 'dsingh9-TestAdoArtifacts-ServiceNow DevOps Service Connection'
             UpstreamJob: 'j2'
